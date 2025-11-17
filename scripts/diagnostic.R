@@ -1,7 +1,7 @@
 library(readxl)
 library(mada)
 ### load your data
-df <- read_excel("Desktop/Outcome.xlsx")
+df <- read_excel("data/Outcome.xlsx")
 
 ### create the madad object with 95% CI 
 meta <- madad(df, level = 0.95)
