@@ -17,8 +17,7 @@ library(mada)
 
 ```{r load-data}
 ### load your data and create the madad object with 95% CI 
-setwd("~/Desktop/swab")      
-df <- read_excel("Outcome.xlsx")
+df <- read_excel("data/Outcome.xlsx")
 meta <- madad(df, level = 0.95)
 
 ```
