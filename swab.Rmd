@@ -1,0 +1,92 @@
+---
+title: "Swab"
+author: "Abdelaziz A. Awad"
+date: "2025-11-17"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r load-libraries}
+library(readxl)
+library(mada)
+```
+
+```{r load-data}
+### load your data and create the madad object with 95% CI 
+setwd("~/Desktop/swab")      
+df <- read_excel("Outcome.xlsx")
+meta <- madad(df, level = 0.95)
+
+```
+
+
+```{r madad-forest-sens}
+mada:::forest.madad(meta, type = "sens")
+```
+
+```{r madad-forest-spec}
+mada:::forest.madad(meta, type = "spec")
+```
+
+
+```{r cross}
+rs <- rowSums(df[,c(2,3,4,5)])
+weights <- 4 * rs / max(rs)
+crosshair(df, xlim = c(0,0.6), ylim = c(0.4,1),
+          col = 1:14, lwd = weights)
+ROCellipse(df, pch = "")
+points(fpr(df), sens(df))
+```
+
+```{r DOR_DSL}
+### Diagnostic odds ratio approach with DerSimonian and Laird (random effects)
+(fit.DOR.DSL <- madauni(df, method = "DSL"))
+summary(fit.DOR.DSL)
+# For DSL method
+mada:::forest.madauni(fit.DOR.DSL)
+```
+
+```{r DOR_MH}
+### Diagnostic odds ratio approach with Mantel-Haenszel (fixed effects)
+(fit.DOR.MH <- madauni(df, method = "MH"))
+summary(fit.DOR.MH)
+# For MH method
+mada:::forest.madauni(fit.DOR.MH)
+```
+
+```{r PHM}
+### Proportional hazards model approach 
+(fit.phm.homo <- phm(df, hetero = FALSE))
+(fit.phm.het <- phm(df))
+summary(fit.phm.homo)
+summary(fit.phm.het)
+plot(fit.phm.het, xlim = c(0,0.6), ylim = c(0.4,1))
+ROCellipse(df, add = TRUE)
+```
+
+
+
+
+```{r}
+df$DOR <- (df$TP * df$TN) / (df$FP * df$FN)  # study-level DOR
+df$lnDOR <- log(df$DOR)                       # log DOR
+df
+loo_DSL <- sapply(1:nrow(df), function(i) {
+  temp <- df[-i, ]                # remove study i
+  fit <- madauni(temp, method="DSL")
+  fit$DOR                        # pooled DOR without study i
+})
+names(loo_DSL) <- df$study
+loo_DSL
+
+
+
+```
+
+
+
+
